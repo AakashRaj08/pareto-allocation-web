@@ -1,0 +1,9 @@
+numpy
+pandas
+networkx
+matplotlib
+ortools
+scipy
+fastapi
+uvicorn
+pydantic
