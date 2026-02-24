@@ -19,7 +19,7 @@ function App() {
 
   // Fetch domains on mount
   useEffect(() => {
-    axios.get('http://127.0.0.1:8000/domains')
+    axios.get(`${process.env.REACT_APP_API_URL}/domains`)
       .then(res => setDomains(res.data))
       .catch(err => console.error('Error fetching domains:', err));
   }, []);
@@ -81,13 +81,13 @@ function App() {
 
     try {
       // First call /allocate
-      const allocResponse = await axios.post('http://127.0.0.1:8000/allocate', requestData, {
+      const allocResponse = await axios.post(`${process.env.REACT_APP_API_URL}/allocate`, requestData, {
         headers: { 'Content-Type': 'application/json' },
       });
       setResult(allocResponse.data);
 
       // Then call /visualize with same request data
-      const visResponse = await axios.post('http://127.0.0.1:8000/visualize', requestData, {
+      const visResponse = await axios.post(`${process.env.REACT_APP_API_URL}/visualize`, requestData, {
         headers: { 'Content-Type': 'application/json' },
       });
       setPlotData(visResponse.data);

@@ -20,11 +20,13 @@ from app.core.visualization import (
 app = FastAPI(title="Pareto Allocation API")
 
 import os
+from fastapi.middleware.cors import CORSMiddleware
 
 # ... after creating app ...
 
 # CORS setup – allow origins from environment variable
 origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
