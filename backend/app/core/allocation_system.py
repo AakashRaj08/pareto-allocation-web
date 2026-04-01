@@ -1,4 +1,5 @@
 import numpy as np
+from typing import List, Optional, Dict, Any
 # (other imports like ortools if needed)
 class AllocationSystem:
     def __init__(self, n_agents: int, n_resources: int, n_layers: int,

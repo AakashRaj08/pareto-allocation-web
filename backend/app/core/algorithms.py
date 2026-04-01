@@ -1,7 +1,9 @@
 import numpy as np
-from typing import List, Optional
+
+from typing import List, Tuple, Optional
 from .allocation_system import Allocation, AllocationSystem
 import networkx as nx
+
 # --- Candidate generation ---
 def serial_dictatorship(system: AllocationSystem, mask: np.ndarray,
                         agent_order: List[int] = None) -> Allocation:

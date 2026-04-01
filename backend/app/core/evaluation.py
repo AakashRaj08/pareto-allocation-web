@@ -1,8 +1,8 @@
 import time
 import numpy as np
 import networkx as nx
-from typing import Dict, List, Any, Tuple
 from .allocation_system import Allocation, AllocationSystem
+from typing import List, Dict, Tuple, Any, Callable, Optional
 
 # --- Evaluation metrics ---
 def avg_rank_per_layer(allocation: Allocation, system: AllocationSystem) -> np.ndarray:

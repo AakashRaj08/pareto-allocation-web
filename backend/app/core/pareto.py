@@ -1,6 +1,6 @@
 import numpy as np
-from typing import List, Tuple, Dict
-
+from typing import List, Dict, Tuple, Any, Callable, Optional
+from .allocation_system import Allocation
 # --- Pareto dominance and front ---
 def dominates(metrics_a: Dict, metrics_b: Dict, objectives: List[Tuple[str, bool]]) -> bool:
     better_or_equal = True

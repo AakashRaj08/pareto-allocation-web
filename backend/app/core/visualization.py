@@ -3,7 +3,7 @@ visualization.py – Generate Plotly-compatible data from allocation results.
 """
 
 import numpy as np
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Tuple, Any, Callable, Optional
 
 def get_pareto_front_2d_data(global_pareto: List[Tuple], x_metric: str = 'avg_rank_selected', y_metric: str = 'stability') -> Dict:
     """

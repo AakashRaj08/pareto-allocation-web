@@ -2,9 +2,14 @@ import React from 'react';
 
 const GraphsTab = ({ plotData }) => {
   return (
-    <div className="graphs-tab">
-      <h3>Additional Graphs (Placeholder)</h3>
-      <p>Here you can add more interactive graphs like parallel coordinates, sensitivity heatmaps, etc.</p>
+    <div className="glass-card graphs-placeholder">
+      <div className="placeholder-icon">📐</div>
+      <h3>Advanced Graphs</h3>
+      <p>
+        This panel is reserved for additional interactive visualizations such as
+        parallel coordinates, sensitivity heatmaps, and agent utility surfaces.
+        These will be available in a future update.
+      </p>
     </div>
   );
 };
