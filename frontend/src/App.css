@@ -395,6 +395,22 @@
   font-family: var(--font-display);
 }
 
+/* ---- Get Count Inline Validation Error ---------- */
+.get-count-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-sm);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 0.82rem;
+  font-weight: 500;
+  animation: fadeInUp 0.25s var(--ease-smooth) both;
+}
+
 /* ---- Submit Button ------------------------------ */
 .submit-row {
   display: flex;

@@ -9,23 +9,32 @@ function App() {
   const [domains, setDomains] = useState({});
   const [selectedDomain, setSelectedDomain] = useState('');
   const [domainConfig, setDomainConfig] = useState(null);
-  const [nAgents, setNAgents] = useState(3);
+  const [nAgents, setNAgents] = useState('');
   const [preferences, setPreferences] = useState({});
   const [result, setResult] = useState(null);
   const [plotData, setPlotData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('visualization');
-  const [agentCountVisible, setAgentCountVisible] = useState(false);
-  const [agentCountAnim, setAgentCountAnim] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [getCountError, setGetCountError] = useState('');
+
+  const parsedAgents = parseInt(nAgents) || 0;
 
   const handleShowAgentCount = () => {
-    setAgentCountAnim(false);
-    setAgentCountVisible(true);
-    // Trigger re-animation on each click
-    setTimeout(() => setAgentCountAnim(true), 10);
-    // Auto-hide after 4 seconds
-    setTimeout(() => setAgentCountVisible(false), 4000);
+    if (!selectedDomain || !domainConfig) {
+      setGetCountError('Please select a domain first.');
+      return;
+    }
+    if (!nAgents || parsedAgents < 1) {
+      setGetCountError('Please enter a valid number of agents (≥ 1).');
+      return;
+    }
+    setGetCountError('');
+    setPreferences({});
+    setResult(null);
+    setPlotData(null);
+    setShowPreferences(true);
   };
 
   // Fetch domains on mount
@@ -43,6 +52,8 @@ function App() {
     setResult(null);
     setPlotData(null);
     setError(null);
+    setShowPreferences(false);
+    setGetCountError('');
   };
 
   const handlePreferenceChange = (agentIdx, layerIdx, resourceIdx, value) => {
@@ -57,7 +68,7 @@ function App() {
     const matrices = [];
     for (let l = 0; l < layers; l++) {
       const layerMatrix = [];
-      for (let a = 0; a < nAgents; a++) {
+      for (let a = 0; a < parsedAgents; a++) {
         const agentRanks = [];
         for (let r = 0; r < resources; r++) {
           const key = `${a}-${l}-${r}`;
@@ -72,7 +83,7 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!domainConfig) return;
+    if (!domainConfig || parsedAgents < 1) return;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -82,12 +93,12 @@ function App() {
     const resources = domainConfig.resources.length;
 
     const requestData = {
-      n_agents: Number(nAgents),
+      n_agents: parsedAgents,
       n_resources: resources,
       n_layers: layers,
       rank_matrices: buildRankMatrices(),
-      compatibility: Array(nAgents).fill(Array(resources).fill(true)),
-      reliability: Array(nAgents).fill(domainConfig.default_reliability || 0.9),
+      compatibility: Array(parsedAgents).fill(Array(resources).fill(true)),
+      reliability: Array(parsedAgents).fill(domainConfig.default_reliability || 0.9),
       mask: Array(layers).fill(1),
     };
 
@@ -122,7 +133,7 @@ function App() {
   ];
 
   const renderPreferenceForm = () => {
-    if (!domainConfig) return null;
+    if (!domainConfig || !showPreferences || parsedAgents < 1) return null;
     const layers = domainConfig.layers;
     const resources = domainConfig.resources;
 
@@ -130,7 +141,7 @@ function App() {
       <div className="preferences-section anim-fade-up anim-delay-200">
         <p className="section-label">Agent Preferences — rank 1 = highest priority</p>
         <div className="preferences-grid">
-          {Array.from({ length: nAgents }).map((_, agentIdx) => (
+          {Array.from({ length: parsedAgents }).map((_, agentIdx) => (
             <div
               key={agentIdx}
               className="glass-card agent-card"
@@ -241,12 +252,14 @@ function App() {
                 className="form-input"
                 type="number"
                 min="1"
-                max="10"
+                max="20"
+                placeholder="e.g. 4"
                 value={nAgents}
                 onChange={(e) => {
-                  setNAgents(parseInt(e.target.value) || 1);
+                  setNAgents(e.target.value);
                   setPreferences({});
-                  setAgentCountVisible(false);
+                  setShowPreferences(false);
+                  setGetCountError('');
                 }}
               />
               <button
@@ -254,27 +267,21 @@ function App() {
                 type="button"
                 className="btn-agent-count"
                 onClick={handleShowAgentCount}
-                title="Click to see the current agent count"
+                title="Generate agent preference cards"
               >
                 👥 Get Count
               </button>
             </div>
-            {agentCountVisible && (
-              <div className={`agent-count-badge ${agentCountAnim ? 'agent-count-badge--visible' : ''}`}>
-                <span className="agent-count-badge__icon">🤖</span>
-                <span className="agent-count-badge__text">
-                  <strong>{nAgents}</strong> agent{nAgents !== 1 ? 's' : ''} selected
-                  {selectedDomain && domainConfig
-                    ? ` · ${domainConfig.name}`
-                    : ''}
-                </span>
+            {getCountError && (
+              <div className="get-count-error">
+                <span>⚠️</span> {getCountError}
               </div>
             )}
           </div>
         </div>
 
-        {/* Preference Form */}
-        {domainConfig && (
+        {/* Preference Form — only shown after Get Count is clicked */}
+        {showPreferences && domainConfig && parsedAgents >= 1 && (
           <form onSubmit={handleSubmit}>
             {renderPreferenceForm()}
 
