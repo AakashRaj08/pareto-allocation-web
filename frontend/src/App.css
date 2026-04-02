@@ -301,6 +301,100 @@
   box-shadow: 0 0 0 3px rgba(168,85,247,0.15);
 }
 
+/* ---- Agent Count Row (input + button) ----------- */
+.agent-count-row {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: stretch;
+}
+
+.agent-count-row .form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- Get Agent Count Button --------------------- */
+.btn-agent-count {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  border: 1px solid rgba(79,158,255,0.45);
+  border-radius: var(--radius-md);
+  background: rgba(79,158,255,0.1);
+  color: var(--accent-blue);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  transition: background var(--dur-normal) var(--ease-smooth),
+              border-color var(--dur-normal) var(--ease-smooth),
+              transform var(--dur-fast) var(--ease-spring),
+              box-shadow var(--dur-normal) var(--ease-smooth);
+  overflow: hidden;
+}
+
+.btn-agent-count::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(79,158,255,0.2) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity var(--dur-normal) var(--ease-smooth);
+}
+
+.btn-agent-count:hover {
+  background: rgba(79,158,255,0.18);
+  border-color: var(--accent-blue);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 18px rgba(79,158,255,0.3);
+}
+
+.btn-agent-count:hover::before { opacity: 1; }
+
+.btn-agent-count:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* ---- Agent Count Badge (result popup) ----------- */
+.agent-count-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--space-sm);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(79,158,255,0.08);
+  border: 1px solid rgba(79,158,255,0.3);
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  opacity: 0;
+  transform: translateY(6px) scale(0.97);
+  transition: opacity 0.3s var(--ease-smooth),
+              transform 0.3s var(--ease-spring);
+  pointer-events: none;
+}
+
+.agent-count-badge--visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.agent-count-badge__icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.agent-count-badge__text strong {
+  color: var(--accent-blue);
+  font-size: 1.05rem;
+  font-family: var(--font-display);
+}
+
 /* ---- Submit Button ------------------------------ */
 .submit-row {
   display: flex;

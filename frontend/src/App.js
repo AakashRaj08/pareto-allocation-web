@@ -16,6 +16,17 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('visualization');
+  const [agentCountVisible, setAgentCountVisible] = useState(false);
+  const [agentCountAnim, setAgentCountAnim] = useState(false);
+
+  const handleShowAgentCount = () => {
+    setAgentCountAnim(false);
+    setAgentCountVisible(true);
+    // Trigger re-animation on each click
+    setTimeout(() => setAgentCountAnim(true), 10);
+    // Auto-hide after 4 seconds
+    setTimeout(() => setAgentCountVisible(false), 4000);
+  };
 
   // Fetch domains on mount
   useEffect(() => {
@@ -224,18 +235,41 @@ function App() {
             <label className="section-label" htmlFor="agent-count">
               Number of Agents (Zones)
             </label>
-            <input
-              id="agent-count"
-              className="form-input"
-              type="number"
-              min="1"
-              max="10"
-              value={nAgents}
-              onChange={(e) => {
-                setNAgents(parseInt(e.target.value) || 1);
-                setPreferences({});
-              }}
-            />
+            <div className="agent-count-row">
+              <input
+                id="agent-count"
+                className="form-input"
+                type="number"
+                min="1"
+                max="10"
+                value={nAgents}
+                onChange={(e) => {
+                  setNAgents(parseInt(e.target.value) || 1);
+                  setPreferences({});
+                  setAgentCountVisible(false);
+                }}
+              />
+              <button
+                id="show-agent-count-btn"
+                type="button"
+                className="btn-agent-count"
+                onClick={handleShowAgentCount}
+                title="Click to see the current agent count"
+              >
+                👥 Get Count
+              </button>
+            </div>
+            {agentCountVisible && (
+              <div className={`agent-count-badge ${agentCountAnim ? 'agent-count-badge--visible' : ''}`}>
+                <span className="agent-count-badge__icon">🤖</span>
+                <span className="agent-count-badge__text">
+                  <strong>{nAgents}</strong> agent{nAgents !== 1 ? 's' : ''} selected
+                  {selectedDomain && domainConfig
+                    ? ` · ${domainConfig.name}`
+                    : ''}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
