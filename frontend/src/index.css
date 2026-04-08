@@ -17,6 +17,15 @@
   --accent-violet: #a855f7;
   --accent-cyan: #22d3ee;
   --accent-pink: #ec4899;
+  --accent-green: #34d399;
+  --accent-orange: #fb923c;
+  --accent-teal: #2dd4bf;
+  --accent-yellow: #fbbf24;
+  --accent-red: #f87171;
+  --accent-lime: #a3e635;
+  --accent-sky: #38bdf8;
+  --accent-indigo: #818cf8;
+  --accent-purple: #c084fc;
 
   --grad-primary: linear-gradient(135deg, #4f9eff 0%, #a855f7 100%);
   --grad-glow: linear-gradient(135deg, rgba(79, 158, 255, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);

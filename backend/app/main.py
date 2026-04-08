@@ -14,15 +14,21 @@ from app.core.visualization import (
     get_pareto_front_3d_data,
     get_alpha_scores_bar_data,
     get_regret_distribution_data,
-    get_resource_utilization_data
+    get_avg_rank_per_layer_data,
+    get_per_agent_satisfaction_data,
+    get_stability_convergence_data,
+    get_pareto_vs_random_data,
+    get_layerwise_rank_correlation_data,
+    get_resource_utilization_data,
+    get_alpha_sensitivity_data,
+    get_parallel_coordinates_data,
+    get_sensitivity_heatmap_data,
 )
 
 app = FastAPI(title="Pareto Allocation API")
 
 import os
 from fastapi.middleware.cors import CORSMiddleware
-
-# ... after creating app ...
 
 # CORS setup – allow origins from environment variable
 origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
@@ -106,7 +112,7 @@ async def allocate(request: AllocationRequest):
     reliability = np.array(request.reliability)
     mask = np.array(request.mask) if request.mask else np.ones(request.n_layers, dtype=int)
 
-    # Debug prints (optional – you can remove them later)
+    # Debug prints
     print("rank_matrices shape:", rank_matrices.shape)
     print("compatibility shape:", compatibility.shape)
     print("reliability length:", len(reliability))
@@ -124,7 +130,7 @@ async def allocate(request: AllocationRequest):
         layer_names=[f"Layer{i}" for i in range(request.n_layers)]
     )
 
-    # Generate candidates (simplified – you can expand this)
+    # Generate candidates
     candidates = []
     for _ in range(3):
         candidates.append(serial_dictatorship(system, mask))
@@ -179,33 +185,52 @@ async def visualize(request: AllocationRequest):
         layer_names=[f"Layer{i}" for i in range(request.n_layers)]
     )
 
-    # Generate candidates (same as in /allocate)
-    candidates = []
+    # --- Generate deterministic algorithm candidates ---
+    det_candidates = []
     for _ in range(3):
-        candidates.append(serial_dictatorship(system, mask))
-    candidates.append(greedy_aggregated(system, mask))
-    candidates.append(rank_maximal_matching(system, mask))
-    for _ in range(2):
-        candidates.append(random_feasible(system))
+        det_candidates.append(serial_dictatorship(system, mask))
+    det_candidates.append(greedy_aggregated(system, mask))
+    det_candidates.append(rank_maximal_matching(system, mask))
 
-    # Evaluate
-    evaluated = []
-    for alloc in candidates:
+    # --- Generate random baseline candidates (kept separate for comparison graph) ---
+    random_candidates = []
+    for _ in range(5):
+        random_candidates.append(random_feasible(system))
+
+    all_candidates = det_candidates + random_candidates
+
+    # --- Evaluate all candidates ---
+    evaluated = []         # all valid solutions
+    random_eval = []       # only random solutions (for baseline comparison)
+
+    for i, alloc in enumerate(all_candidates):
         metrics = evaluate_allocation(alloc, system, mask)
         if metrics.get('valid'):
             evaluated.append((alloc, metrics))
+            if i >= len(det_candidates):     # random candidates
+                random_eval.append((alloc, metrics))
 
-    # Pareto front
+    # --- Pareto front from all evaluated ---
     objectives = [('avg_rank_selected', True), ('alpha_score', False), ('stability', False)]
     global_pareto = pareto_frontier(evaluated, objectives)
 
-    # Generate plot data using the visualization functions
+    # --- Build all plot data ---
     plot_data = {
-        "pareto_2d": get_pareto_front_2d_data(global_pareto),
-        "pareto_3d": get_pareto_front_3d_data(global_pareto),
-        "alpha_scores": get_alpha_scores_bar_data(global_pareto),
-        "regret_distribution": get_regret_distribution_data(global_pareto, system),
-        # "resource_utilization": get_resource_utilization_data(all_mask_champions, system) # requires all_mask_champions – we omit for now
+        # Existing 4 graphs
+        "pareto_2d":             convert_numpy(get_pareto_front_2d_data(global_pareto)),
+        "pareto_3d":             convert_numpy(get_pareto_front_3d_data(global_pareto)),
+        "alpha_scores":          convert_numpy(get_alpha_scores_bar_data(global_pareto)),
+        "regret_distribution":   convert_numpy(get_regret_distribution_data(global_pareto, system)),
+        # 9 New graphs
+        "avg_rank_per_layer":         convert_numpy(get_avg_rank_per_layer_data(global_pareto, system)),
+        "per_agent_satisfaction":     convert_numpy(get_per_agent_satisfaction_data(global_pareto, system)),
+        "stability_convergence":      convert_numpy(get_stability_convergence_data(global_pareto)),
+        "pareto_vs_random":           convert_numpy(get_pareto_vs_random_data(global_pareto, random_eval)),
+        "layerwise_rank_correlation": convert_numpy(get_layerwise_rank_correlation_data(global_pareto, system)),
+        "resource_utilization":       convert_numpy(get_resource_utilization_data(global_pareto, system)),
+        "alpha_sensitivity":          convert_numpy(get_alpha_sensitivity_data(global_pareto)),
+        "parallel_coordinates":       convert_numpy(get_parallel_coordinates_data(global_pareto, objectives)),
+        "sensitivity_heatmap":        convert_numpy(get_sensitivity_heatmap_data(global_pareto)),
     }
 
     return plot_data
