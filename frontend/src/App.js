@@ -196,8 +196,8 @@ function App() {
   };
 
   const tabs = [
-    { key: 'visualization', label: 'Visualization', icon: '📊' },
-    { key: 'graphs', label: 'Graphs', icon: '📈' },
+    { key: 'visualization', label: 'Graphs', icon: '📊' },
+    { key: 'graphs', label: 'Visualization', icon: '📈' },
     { key: 'calculations', label: 'Calculations', icon: '🧮' },
   ];
 
@@ -341,7 +341,7 @@ function App() {
             {/* Tab Panels */}
             <div className="tab-panel" role="tabpanel">
               {activeTab === 'visualization' && <VisualizationTab plotData={plotData} />}
-              {activeTab === 'graphs'        && <GraphsTab plotData={plotData} />}
+              {activeTab === 'graphs'        && <GraphsTab plotData={plotData} result={result} nAgents={parsedAgents} domainConfig={domainConfig} />}
               {activeTab === 'calculations'  && <CalculationsTab calculations={result} />}
             </div>
           </div>
