@@ -67,6 +67,7 @@ const VisualizationTab = ({ plotData }) => {
 
   return (
     <div className="viz-grid">
+      {/* Row 1: 2D Pareto + α‑Score */}
       <PlotCard
         title="2D Pareto Front"
         dot="dot-blue"
@@ -74,7 +75,6 @@ const VisualizationTab = ({ plotData }) => {
         layout={plotData.pareto_2d?.layout}
         height={360}
       />
-
       <PlotCard
         title="α‑Score Distribution"
         dot="dot-violet"
@@ -83,6 +83,7 @@ const VisualizationTab = ({ plotData }) => {
         height={360}
       />
 
+      {/* Full‑width 3D Pareto */}
       <div className="viz-grid-full">
         <PlotCard
           title="3D Pareto Front"
@@ -93,12 +94,45 @@ const VisualizationTab = ({ plotData }) => {
         />
       </div>
 
+      {/* Row 2: Regret + Avg Rank per Layer */}
+      <PlotCard
+        title="Regret Distribution"
+        dot="dot-pink"
+        data={plotData.regret_distribution?.data}
+        layout={plotData.regret_distribution?.layout}
+        height={360}
+      />
+      <PlotCard
+        title="Average Rank per Layer"
+        dot="dot-green"
+        data={plotData.avg_rank_per_layer?.data}
+        layout={plotData.avg_rank_per_layer?.layout}
+        height={360}
+      />
+
+      {/* Row 3: Fairness Distribution + Parallel Coordinates */}
+      <PlotCard
+        title="Fairness Distribution"
+        dot="dot-orange"
+        data={plotData.fairness_distribution?.data}
+        layout={plotData.fairness_distribution?.layout}
+        height={360}
+      />
+      <PlotCard
+        title="Parallel Coordinates"
+        dot="dot-purple"
+        data={plotData.parallel_coordinates?.data}
+        layout={plotData.parallel_coordinates?.layout}
+        height={400}
+      />
+
+      {/* Full‑width Resource Utilization */}
       <div className="viz-grid-full">
         <PlotCard
-          title="Regret Distribution"
-          dot="dot-pink"
-          data={plotData.regret_distribution?.data}
-          layout={plotData.regret_distribution?.layout}
+          title="Resource Utilization"
+          dot="dot-teal"
+          data={plotData.resource_utilization?.data}
+          layout={plotData.resource_utilization?.layout}
           height={360}
         />
       </div>
