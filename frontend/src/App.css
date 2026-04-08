@@ -977,3 +977,351 @@
   .fc-row { flex-direction: column; align-items: center; }
   .fc-metrics-grid { grid-template-columns: repeat(2, 1fr); width: 100%; }
 }
+
+/* =========================================================
+   STEP TRACE – CalculationsTab
+   ========================================================= */
+.st-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* header card */
+.st-header-card { padding: var(--space-md) var(--space-lg); }
+.st-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+.st-header-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.st-header-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.st-header-actions {
+  display: flex;
+  gap: 8px;
+}
+.st-btn {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.st-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+/* Step list */
+.st-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Step card */
+.st-card { padding: 0; overflow: hidden; }
+.st-card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 12px var(--space-md);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-display);
+  color: var(--text-primary);
+  transition: background 0.2s;
+}
+.st-card-header:hover {
+  background: rgba(255,255,255,0.03);
+}
+.st-step-num {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  min-width: 50px;
+  letter-spacing: 0.04em;
+}
+.st-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  color: #000;
+  min-width: 55px;
+  text-align: center;
+}
+.st-card-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex: 1;
+}
+.st-chevron {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}  
+
+/* Card body */
+.st-card-body {
+  padding: 0 var(--space-md) var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+}
+.st-body-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
+}
+
+/* Description */
+.st-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Grid */
+.st-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+}
+
+/* Key-Value */
+.st-kv {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+}
+.st-kv-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+.st-kv-value {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+.st-kv-value.mono {
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+}
+
+/* Assignment pills */
+.st-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.st-pill {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(79,158,255,0.1);
+  border: 1px solid rgba(79,158,255,0.25);
+  color: var(--accent-blue);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.st-pill--empty {
+  background: rgba(255,255,255,0.03);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+}
+
+/* Subsection */
+.st-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+.st-sub-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Formula block */
+.st-formula {
+  display: block;
+  padding: 8px 12px;
+  background: rgba(168,85,247,0.06);
+  border: 1px solid rgba(168,85,247,0.2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--accent-violet);
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+/* Mini table */
+.st-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+.st-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+}
+.st-table th {
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.03);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.st-table td {
+  padding: 5px 10px;
+  text-align: center;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.st-table--compact td, .st-table--compact th { padding: 4px 8px; font-size: 0.68rem; }
+.st-row-header {
+  font-weight: 600;
+  color: var(--text-muted) !important;
+  text-align: left !important;
+}
+.st-row-hl td {
+  background: rgba(248,113,113,0.06);
+  color: var(--accent-red);
+}
+
+/* Iteration list */
+.st-iter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+}
+.st-iter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+}
+.st-iter--accept { background: rgba(52,211,153,0.06); }
+.st-iter--skip   { background: rgba(255,255,255,0.02); }
+.st-iter--info   { background: rgba(79,158,255,0.06); }
+.st-iter-step {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  min-width: 24px;
+  font-weight: 700;
+}
+.st-iter-action {
+  color: var(--text-secondary);
+  flex: 1;
+}
+.st-iter--accept .st-iter-action { color: var(--accent-green); }
+.st-iter--skip .st-iter-action { color: var(--text-muted); }
+.st-iter-detail {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+/* Evaluation step */
+.st-eval-step {
+  padding: 8px 12px;
+  border-left: 3px solid rgba(251,146,60,0.3);
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.st-eval-metric {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-orange);
+}
+.st-calc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.st-calc code {
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+}
+.st-formulas {
+  font-size: 0.72rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.st-formulas code {
+  font-family: var(--font-mono);
+  color: var(--accent-violet);
+  font-size: 0.7rem;
+}
+.st-result-badge {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+.st-result-badge strong {
+  color: var(--accent-cyan);
+  font-family: var(--font-mono);
+}
+
+/* Result solution */
+.st-result-sol {
+  padding: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.st-sol-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+/* mono utility */
+.mono { font-family: var(--font-mono) !important; }

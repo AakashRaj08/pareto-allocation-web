@@ -9,6 +9,7 @@ from app.core.allocation_system import AllocationSystem
 from app.core.algorithms import serial_dictatorship, greedy_aggregated, rank_maximal_matching, random_feasible
 from app.core.evaluation import evaluate_allocation
 from app.core.pareto import pareto_frontier
+from app.core.step_logger import build_full_trace
 from app.core.visualization import (
     get_pareto_front_2d_data,
     get_pareto_front_3d_data,
@@ -98,11 +99,13 @@ def convert_numpy(obj):
         return {k: convert_numpy(v) for k, v in obj.items()}
     elif isinstance(obj, (list, tuple)):
         return [convert_numpy(v) for v in obj]
+    elif isinstance(obj, bool):
+        return bool(obj)
     else:
         return obj
 
 # ------------------------------------------------------------------------------
-# Endpoint: Run allocation and return Pareto front
+# Endpoint: Run allocation and return Pareto front + detailed steps
 # ------------------------------------------------------------------------------
 @app.post("/allocate")
 async def allocate(request: AllocationRequest):
@@ -111,12 +114,6 @@ async def allocate(request: AllocationRequest):
     compatibility = np.array(request.compatibility)
     reliability = np.array(request.reliability)
     mask = np.array(request.mask) if request.mask else np.ones(request.n_layers, dtype=int)
-
-    # Debug prints
-    print("rank_matrices shape:", rank_matrices.shape)
-    print("compatibility shape:", compatibility.shape)
-    print("reliability length:", len(reliability))
-    print("n_agents from request:", request.n_agents)
 
     # Create system
     system = AllocationSystem(
@@ -130,29 +127,12 @@ async def allocate(request: AllocationRequest):
         layer_names=[f"Layer{i}" for i in range(request.n_layers)]
     )
 
-    # Generate candidates
-    candidates = []
-    for _ in range(3):
-        candidates.append(serial_dictatorship(system, mask))
-    candidates.append(greedy_aggregated(system, mask))
-    candidates.append(rank_maximal_matching(system, mask))
-    for _ in range(2):
-        candidates.append(random_feasible(system))
+    # Run the full pipeline with step-by-step logging
+    pareto_result, steps = build_full_trace(system, mask)
 
-    # Evaluate
-    evaluated = []
-    for alloc in candidates:
-        metrics = evaluate_allocation(alloc, system, mask)
-        if metrics.get('valid'):
-            evaluated.append((alloc, metrics))
-
-    # Pareto front
-    objectives = [('avg_rank_selected', True), ('alpha_score', False), ('stability', False)]
-    pareto = pareto_frontier(evaluated, objectives)
-
-    # Format response with numpy conversion
+    # Format pareto front for JSON
     result = []
-    for alloc, met in pareto:
+    for alloc, met in pareto_result:
         alloc_dict = convert_numpy(alloc.to_dict())
         met_dict = convert_numpy({k: v for k, v in met.items() if k not in ['valid', 'feasible']})
         result.append({
@@ -160,7 +140,10 @@ async def allocate(request: AllocationRequest):
             "metrics": met_dict
         })
 
-    return {"pareto_front": result}
+    return {
+        "pareto_front": result,
+        "steps": convert_numpy(steps),
+    }
 
 # ------------------------------------------------------------------------------
 # Endpoint: Generate plot data for visualizations
