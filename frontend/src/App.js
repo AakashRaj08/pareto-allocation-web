@@ -31,7 +31,27 @@ function App() {
       return;
     }
     setGetCountError('');
-    setPreferences({});
+
+    // Generate random permutation of ranks for each agent × layer
+    const layers = domainConfig.layers.length;
+    const resources = domainConfig.resources.length;
+    const n = parseInt(nAgents);
+    const randomPrefs = {};
+    for (let a = 0; a < n; a++) {
+      for (let l = 0; l < layers; l++) {
+        // Fisher-Yates shuffle of [1, 2, ..., resources]
+        const ranks = Array.from({ length: resources }, (_, i) => i + 1);
+        for (let i = ranks.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [ranks[i], ranks[j]] = [ranks[j], ranks[i]];
+        }
+        for (let r = 0; r < resources; r++) {
+          randomPrefs[`${a}-${l}-${r}`] = ranks[r];
+        }
+      }
+    }
+    setPreferences(randomPrefs);
+
     setResult(null);
     setPlotData(null);
     setShowPreferences(true);
