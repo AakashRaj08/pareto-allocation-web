@@ -77,8 +77,64 @@ function App() {
   };
 
   const handlePreferenceChange = (agentIdx, layerIdx, resourceIdx, value) => {
-    const key = `${agentIdx}-${layerIdx}-${resourceIdx}`;
-    setPreferences(prev => ({ ...prev, [key]: parseInt(value) || 1 }));
+    if (value === '') {
+      setPreferences(prev => ({ ...prev, [`${agentIdx}-${layerIdx}-${resourceIdx}`]: '' }));
+      return;
+    }
+
+    const newVal = parseInt(value, 10);
+    if (isNaN(newVal)) return;
+
+    setPreferences(prev => {
+      const newPrefs = { ...prev };
+      const resourcesCount = domainConfig?.resources?.length || 1;
+      
+      let clampedVal = newVal;
+      if (clampedVal < 1) clampedVal = 1;
+      if (clampedVal > resourcesCount) clampedVal = resourcesCount;
+
+      const currentRanks = [];
+      for (let r = 0; r < resourcesCount; r++) {
+        const val = prev[`${agentIdx}-${layerIdx}-${r}`];
+        currentRanks[r] = (val !== undefined) ? val : (r + 1);
+      }
+      
+      const oldVal = prev[`${agentIdx}-${layerIdx}-${resourceIdx}`];
+
+      let conflictIdx = -1;
+      for (let r = 0; r < resourcesCount; r++) {
+        if (r !== resourceIdx && currentRanks[r] === clampedVal) {
+          conflictIdx = r;
+          break;
+        }
+      }
+
+      if (conflictIdx !== -1) {
+        if (oldVal !== '' && oldVal !== undefined) {
+          newPrefs[`${agentIdx}-${layerIdx}-${conflictIdx}`] = oldVal;
+        } else {
+          const usedRanks = new Set();
+          for (let r = 0; r < resourcesCount; r++) {
+            if (r !== resourceIdx && r !== conflictIdx && currentRanks[r] !== '' && currentRanks[r] !== undefined) {
+              usedRanks.add(currentRanks[r]);
+            }
+          }
+          usedRanks.add(clampedVal);
+          
+          let missingRank = 1;
+          for (let i = 1; i <= resourcesCount; i++) {
+            if (!usedRanks.has(i)) {
+              missingRank = i;
+              break;
+            }
+          }
+          newPrefs[`${agentIdx}-${layerIdx}-${conflictIdx}`] = missingRank;
+        }
+      }
+
+      newPrefs[`${agentIdx}-${layerIdx}-${resourceIdx}`] = clampedVal;
+      return newPrefs;
+    });
   };
 
   const buildRankMatrices = () => {
@@ -197,7 +253,7 @@ function App() {
                           type="number"
                           min="1"
                           max={resources.length}
-                          value={preferences[`${agentIdx}-${layerIdx}-${resourceIdx}`] || resourceIdx + 1}
+                          value={preferences[`${agentIdx}-${layerIdx}-${resourceIdx}`] !== undefined ? preferences[`${agentIdx}-${layerIdx}-${resourceIdx}`] : resourceIdx + 1}
                           onChange={(e) =>
                             handlePreferenceChange(agentIdx, layerIdx, resourceIdx, e.target.value)
                           }
