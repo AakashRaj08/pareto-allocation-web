@@ -416,6 +416,134 @@
   animation: fadeInUp 0.25s var(--ease-smooth) both;
 }
 
+/* ---- Layer Mask Panel --------------------------- */
+.layer-mask-panel {
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.layer-mask-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.layer-mask-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: border-color var(--dur-normal) var(--ease-smooth),
+              background var(--dur-normal) var(--ease-smooth),
+              box-shadow var(--dur-normal) var(--ease-smooth);
+  user-select: none;
+}
+
+.layer-mask-item:hover {
+  border-color: rgba(79,158,255,0.3);
+  background: rgba(79,158,255,0.05);
+}
+
+.layer-mask-item--on {
+  border-color: rgba(79,158,255,0.5);
+  background: rgba(79,158,255,0.1);
+  box-shadow: 0 0 0 2px rgba(79,158,255,0.12);
+}
+
+.layer-mask-checkbox {
+  accent-color: var(--accent-blue);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.layer-mask-name {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.layer-mask-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* ---- Reliability Row (inside agent card) --------- */
+.reliability-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 8px 12px;
+  margin-bottom: var(--space-md);
+  border-radius: var(--radius-sm);
+  background: rgba(168,85,247,0.06);
+  border: 1px solid rgba(168,85,247,0.2);
+}
+
+.reliability-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent-violet);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.reliability-input {
+  width: 72px;
+  padding: 5px 8px;
+  text-align: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(168,85,247,0.35);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color var(--dur-normal) var(--ease-smooth),
+              background var(--dur-normal) var(--ease-smooth),
+              box-shadow var(--dur-normal) var(--ease-smooth);
+}
+
+.reliability-input:focus {
+  border-color: var(--accent-violet);
+  background: rgba(168,85,247,0.1);
+  box-shadow: 0 0 0 3px rgba(168,85,247,0.15);
+}
+
+.reliability-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* ---- Disabled layer block (excluded by mask) ----- */
+.layer-block--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.layer-disabled-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #fca5a5;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 /* ---- Submit Button ------------------------------ */
 .submit-row {
   display: flex;

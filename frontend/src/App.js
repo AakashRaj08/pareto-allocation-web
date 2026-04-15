@@ -11,6 +11,8 @@ function App() {
   const [domainConfig, setDomainConfig] = useState(null);
   const [nAgents, setNAgents] = useState('');
   const [preferences, setPreferences] = useState({});
+  const [reliabilities, setReliabilities] = useState([]);
+  const [layerMask, setLayerMask] = useState([]);
   const [result, setResult] = useState(null);
   const [plotData, setPlotData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,13 @@ function App() {
     }
     setPreferences(randomPrefs);
 
+    // Initialise reliabilities: default from domainConfig, one per agent
+    const defaultRel = domainConfig.default_reliability ?? 0.9;
+    setReliabilities(Array.from({ length: n }, () => defaultRel));
+
+    // Initialise layer mask: all layers enabled
+    setLayerMask(Array(layers).fill(1));
+
     setResult(null);
     setPlotData(null);
     setShowPreferences(true);
@@ -69,6 +78,8 @@ function App() {
     setSelectedDomain(key);
     setDomainConfig(domains[key] || null);
     setPreferences({});
+    setReliabilities([]);
+    setLayerMask([]);
     setResult(null);
     setPlotData(null);
     setError(null);
@@ -168,14 +179,21 @@ function App() {
     const layers = domainConfig.layers.length;
     const resources = domainConfig.resources.length;
 
+    // Build reliability array, falling back to default if a value is missing/invalid
+    const defaultRel = domainConfig.default_reliability ?? 0.9;
+    const reliabilityPayload = Array.from({ length: parsedAgents }, (_, i) => {
+      const v = parseFloat(reliabilities[i]);
+      return isNaN(v) ? defaultRel : Math.min(1, Math.max(0, v));
+    });
+
     const requestData = {
       n_agents: parsedAgents,
       n_resources: resources,
       n_layers: layers,
       rank_matrices: buildRankMatrices(),
       compatibility: Array(parsedAgents).fill(Array(resources).fill(true)),
-      reliability: Array(parsedAgents).fill(domainConfig.default_reliability || 0.9),
-      mask: Array(layers).fill(1),
+      reliability: reliabilityPayload,
+      mask: layerMask.length === layers ? layerMask : Array(layers).fill(1),
     };
 
     try {
@@ -208,6 +226,22 @@ function App() {
     'linear-gradient(135deg, #f59e0b, #ec4899)',
   ];
 
+  const handleReliabilityChange = (agentIdx, value) => {
+    setReliabilities(prev => {
+      const next = [...prev];
+      next[agentIdx] = value;
+      return next;
+    });
+  };
+
+  const handleLayerMaskToggle = (layerIdx) => {
+    setLayerMask(prev => {
+      const next = [...prev];
+      next[layerIdx] = next[layerIdx] === 1 ? 0 : 1;
+      return next;
+    });
+  };
+
   const renderPreferenceForm = () => {
     if (!domainConfig || !showPreferences || parsedAgents < 1) return null;
     const layers = domainConfig.layers;
@@ -215,7 +249,42 @@ function App() {
 
     return (
       <div className="preferences-section anim-fade-up anim-delay-200">
-        <p className="section-label">Agent Preferences — rank 1 = highest priority</p>
+
+        {/* ── Layer Mask Panel ─────────────────────── */}
+        <div className="layer-mask-panel glass-card">
+          <p className="section-label" style={{ marginBottom: 'var(--space-sm)' }}>
+            🗂️ Active Layers — select which layers to include in allocation
+          </p>
+          <div className="layer-mask-grid">
+            {layers.map((layer, layerIdx) => {
+              const checked = layerMask[layerIdx] === 1;
+              return (
+                <label
+                  key={layerIdx}
+                  className={`layer-mask-item${checked ? ' layer-mask-item--on' : ''}`}
+                  htmlFor={`mask-layer-${layerIdx}`}
+                >
+                  <input
+                    type="checkbox"
+                    id={`mask-layer-${layerIdx}`}
+                    checked={checked}
+                    onChange={() => handleLayerMaskToggle(layerIdx)}
+                    className="layer-mask-checkbox"
+                  />
+                  <span className="layer-mask-name">{layer.name}</span>
+                  {layer.description && (
+                    <span className="layer-mask-desc">{layer.description}</span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Agent Preferences ────────────────────── */}
+        <p className="section-label" style={{ marginTop: 'var(--space-lg)' }}>
+          Agent Preferences &amp; Reliability — rank&nbsp;1&nbsp;=&nbsp;highest priority
+        </p>
         <div className="preferences-grid">
           {Array.from({ length: parsedAgents }).map((_, agentIdx) => (
             <div
@@ -230,16 +299,41 @@ function App() {
                 >
                   A{agentIdx + 1}
                 </div>
-                <div>
+                <div style={{ flex: 1 }}>
                   <div className="agent-name">Agent {agentIdx + 1}</div>
                   <div className="agent-desc">Set resource preferences per layer</div>
                 </div>
               </div>
 
+              {/* Reliability row */}
+              <div className="reliability-row">
+                <label
+                  className="reliability-label"
+                  htmlFor={`rel-a${agentIdx}`}
+                >
+                  🔧 Reliability
+                </label>
+                <input
+                  id={`rel-a${agentIdx}`}
+                  className="reliability-input"
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={reliabilities[agentIdx] !== undefined ? reliabilities[agentIdx] : 0.9}
+                  onChange={(e) => handleReliabilityChange(agentIdx, e.target.value)}
+                  title="Probability that this agent performs correctly (0–1)"
+                />
+                <span className="reliability-hint">0 – 1</span>
+              </div>
+
               {layers.map((layer, layerIdx) => (
-                <div key={layerIdx} className="layer-block">
+                <div key={layerIdx} className={`layer-block${layerMask[layerIdx] === 0 ? ' layer-block--disabled' : ''}`}>
                   <div className="layer-name">
                     {layer.name}
+                    {layerMask[layerIdx] === 0 && (
+                      <span className="layer-disabled-badge">excluded</span>
+                    )}
                   </div>
                   {layer.description && (
                     <div className="layer-layer-desc">{layer.description}</div>
@@ -258,6 +352,7 @@ function App() {
                             handlePreferenceChange(agentIdx, layerIdx, resourceIdx, e.target.value)
                           }
                           id={`pref-a${agentIdx}-l${layerIdx}-r${resourceIdx}`}
+                          disabled={layerMask[layerIdx] === 0}
                         />
                       </div>
                     ))}
@@ -334,6 +429,8 @@ function App() {
                 onChange={(e) => {
                   setNAgents(e.target.value);
                   setPreferences({});
+                  setReliabilities([]);
+                  setLayerMask([]);
                   setShowPreferences(false);
                   setGetCountError('');
                 }}
