@@ -3,6 +3,7 @@ import axios from 'axios';
 import VisualizationTab from './components/VisualizationTab';
 import GraphsTab from './components/GraphsTab';
 import CalculationsTab from './components/CalculationsTab';
+import ResultsTab from './components/ResultsTab';
 import './App.css';
 
 function App() {
@@ -370,6 +371,7 @@ function App() {
     { key: 'visualization', label: 'Graphs', icon: '📊' },
     { key: 'graphs', label: 'Visualization', icon: '📈' },
     { key: 'calculations', label: 'Calculations', icon: '🧮' },
+    { key: 'results', label: 'Results', icon: '🏆' },
   ];
 
   return (
@@ -516,6 +518,7 @@ function App() {
               {activeTab === 'visualization' && <VisualizationTab plotData={plotData} />}
               {activeTab === 'graphs'        && <GraphsTab plotData={plotData} result={result} nAgents={parsedAgents} domainConfig={domainConfig} />}
               {activeTab === 'calculations'  && <CalculationsTab calculations={result} />}
+              {activeTab === 'results'       && <ResultsTab result={result} />}
             </div>
           </div>
         )}
