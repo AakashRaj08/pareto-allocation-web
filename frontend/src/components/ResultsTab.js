@@ -44,10 +44,10 @@ const MiniBar = ({ value, color = 'blue', inverse = false }) => {
 };
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Summary KPI strip (best solution metrics)
+   Summary KPI strip (selected solution metrics)
    ───────────────────────────────────────────────────────────────────────────── */
-const SummaryStrip = ({ best }) => {
-  const metrics = best?.metrics || {};
+const SummaryStrip = ({ selected }) => {
+  const metrics = selected?.metrics || {};
   return (
     <div className="res-kpi-grid">
       {METRIC_DEFS.map(def => {
@@ -72,6 +72,53 @@ const SummaryStrip = ({ best }) => {
           </div>
         );
       })}
+    </div>
+  );
+};
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Allocation panel — shows agent → resource mapping for selected solution
+   ───────────────────────────────────────────────────────────────────────────── */
+const AllocationPanel = ({ sol, selectedIdx }) => {
+  if (!sol) return null;
+  const allocation = sol.allocation || {};
+  const entries = Object.entries(allocation);
+  const gradients = [
+    'linear-gradient(135deg,#4f9eff,#a855f7)',
+    'linear-gradient(135deg,#22d3ee,#4f9eff)',
+    'linear-gradient(135deg,#a855f7,#ec4899)',
+    'linear-gradient(135deg,#10b981,#22d3ee)',
+    'linear-gradient(135deg,#f59e0b,#ec4899)',
+    'linear-gradient(135deg,#ec4899,#f97316)',
+  ];
+  return (
+    <div className="res-alloc-panel glass-card">
+      <div className="res-alloc-panel-header">
+        <span className="res-alloc-title">📌 Resource Assignment</span>
+        <span className="res-alloc-sub">
+          Solution {selectedIdx + 1}{selectedIdx === 0 ? ' · Best' : ''}
+          {' — '}{entries.length} agent{entries.length !== 1 ? 's' : ''} allocated
+        </span>
+      </div>
+      <div className="res-alloc-grid">
+        {entries.map(([agent, resource], i) => (
+          <div
+            key={agent}
+            className={`res-alloc-item${resource == null ? ' res-alloc-item--unassigned' : ''}`}
+          >
+            <div
+              className="res-alloc-agent-badge"
+              style={{ background: gradients[i % gradients.length] }}
+            >
+              {agent}
+            </div>
+            <div className="res-alloc-arrow">→</div>
+            <div className="res-alloc-resource">
+              {resource ?? <span className="res-alloc-null">—</span>}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -235,13 +282,16 @@ const CompareTable = ({ solutions, pinnedIndices }) => {
 };
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Pareto Front Summary table (all solutions at a glance)
+   Pareto Front Summary table (all solutions at a glance, rows are clickable)
    ───────────────────────────────────────────────────────────────────────────── */
-const ParetoTable = ({ solutions }) => (
+const ParetoTable = ({ solutions, selectedIdx, onRowClick }) => (
   <div className="glass-card res-pareto-table-card">
     <div className="res-section-header">
       <span className="res-section-title">📋 Pareto Front — All Solutions</span>
-      <span className="res-section-sub">{solutions.length} non-dominated solution{solutions.length !== 1 ? 's' : ''}</span>
+      <span className="res-section-sub">
+        {solutions.length} non-dominated solution{solutions.length !== 1 ? 's' : ''}
+        {' · '}<span style={{ color: 'var(--accent-blue)' }}>Click a row to inspect its allocation</span>
+      </span>
     </div>
     <div className="res-compare-table-wrap">
       <table className="res-compare-table">
@@ -256,10 +306,21 @@ const ParetoTable = ({ solutions }) => (
           {solutions.map((sol, i) => {
             const m = sol.metrics || {};
             const alloc = sol.allocation || {};
+            const isActive = i === selectedIdx;
             return (
-              <tr key={i} className={i === 0 ? 'res-best-row' : ''}>
+              <tr
+                key={i}
+                className={[
+                  i === 0 ? 'res-best-row' : '',
+                  isActive ? 'res-row--active' : '',
+                  'res-row--clickable',
+                ].filter(Boolean).join(' ')}
+                onClick={() => onRowClick(i)}
+                title={`Click to inspect Solution ${i + 1}`}
+              >
                 <td className="res-ct-sol">
                   {i === 0 ? '🏆' : i + 1}
+                  {isActive && <span className="res-row-indicator"> ◀</span>}
                 </td>
                 {METRIC_DEFS.map(def => (
                   <td key={def.key} className="res-ct-val">
@@ -284,6 +345,7 @@ const ParetoTable = ({ solutions }) => (
 const ResultsTab = ({ result }) => {
   const [pinnedIndices, setPinnedIndices] = useState([]);
   const [view, setView] = useState('cards'); // 'cards' | 'table'
+  const [selectedIdx, setSelectedIdx] = useState(0);
 
   if (!result || !result.pareto_front || result.pareto_front.length === 0) {
     return (
@@ -294,12 +356,16 @@ const ResultsTab = ({ result }) => {
   }
 
   const paretoFront = result.pareto_front;
-  const best = paretoFront[0];
+  const selectedSol = paretoFront[Math.min(selectedIdx, paretoFront.length - 1)];
 
   const togglePin = (idx) => {
     setPinnedIndices(prev =>
       prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
     );
+  };
+
+  const handleRowClick = (idx) => {
+    setSelectedIdx(idx);
   };
 
   return (
@@ -335,15 +401,29 @@ const ResultsTab = ({ result }) => {
       {/* ── KPI Summary Strip ──────────────────────────────────── */}
       <div className="glass-card res-kpi-header-card">
         <div className="res-section-header">
-          <span className="res-section-title">⭐ Best Solution — Key Metrics</span>
-          <span className="res-section-sub">Solution 1 (top-ranked on Pareto front)</span>
+          <span className="res-section-title">
+            {selectedIdx === 0 ? '⭐ Best Solution' : `📍 Solution ${selectedIdx + 1}`} — Key Metrics
+          </span>
+          <span className="res-section-sub">
+            {selectedIdx === 0
+              ? 'Solution 1 (top-ranked on Pareto front)'
+              : `Solution ${selectedIdx + 1} · Click table rows to switch`
+            }
+          </span>
         </div>
-        <SummaryStrip best={best} />
+        <SummaryStrip selected={selectedSol} />
       </div>
+
+      {/* ── Allocation Panel ────────────────────────────────────── */}
+      <AllocationPanel sol={selectedSol} selectedIdx={selectedIdx} />
 
       {/* ── Pareto Table View ─────────────────────────────────── */}
       {view === 'table' && (
-        <ParetoTable solutions={paretoFront} />
+        <ParetoTable
+          solutions={paretoFront}
+          selectedIdx={selectedIdx}
+          onRowClick={handleRowClick}
+        />
       )}
 
       {/* ── Cards View ─────────────────────────────────────────── */}

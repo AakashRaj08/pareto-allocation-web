@@ -69,6 +69,8 @@ def log_serial_dictatorship(system: AllocationSystem, mask: np.ndarray) -> Tuple
         scores = np.random.rand(system.n_agents, system.n_resources)
     else:
         scores = np.mean(system.score_matrices[mask == 1, :, :], axis=0)
+    # Weight each agent's scores by their reliability (0 = worst, 1 = unchanged)
+    scores = scores * system.reliability[:, np.newaxis]
 
     scores_copy = scores.copy()
     scores_copy[~system.compatibility] = -np.inf
@@ -124,6 +126,8 @@ def log_greedy_aggregated(system: AllocationSystem, mask: np.ndarray) -> Tuple[A
         scores = np.zeros((system.n_agents, system.n_resources))
         for idx, lay in enumerate(selected):
             scores += weights[idx] * system.score_matrices[lay]
+    # Weight each agent's scores by their reliability (0 = worst, 1 = unchanged)
+    scores = scores * system.reliability[:, np.newaxis]
 
     scores[~system.compatibility] = -np.inf
     assignment = np.full(system.n_agents, -1, dtype=int)
@@ -186,6 +190,10 @@ def log_rank_maximal(system: AllocationSystem, mask: np.ndarray) -> Tuple[Alloca
         return alloc, glog
 
     agg_rank = np.sum(system.rank_matrices[mask == 1, :, :], axis=0)
+    # Penalise unreliable agents by inflating their aggregated rank
+    # reliability=0 → full penalty; reliability=1 → no penalty
+    reliability_penalty = (1 - system.reliability[:, np.newaxis]) * system.n_resources * mask.sum()
+    agg_rank = agg_rank.astype(float) + reliability_penalty
     agg_rank_display = agg_rank.copy()
     agg_rank[~system.compatibility] = 1e9
 
