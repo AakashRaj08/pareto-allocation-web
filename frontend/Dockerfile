@@ -4,19 +4,23 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
+# Accept build-time API URL from docker-compose
+ARG REACT_APP_API_URL=http://localhost:8000
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install
 
 # Copy the rest of the source code
 COPY . .
 
-# Build the React app
+# Build the React app (REACT_APP_API_URL is embedded at this step)
 RUN npm run build
 
 # Use a lightweight web server to serve the static files
 FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
-EXPOSE 3000
+EXPOSE 80
 
-# The default nginx image already runs on port 80, but we'll map it to 3000 later in docker-compose
+CMD ["nginx", "-g", "daemon off;"]

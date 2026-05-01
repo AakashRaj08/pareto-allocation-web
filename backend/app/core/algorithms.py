@@ -13,6 +13,8 @@ def serial_dictatorship(system: AllocationSystem, mask: np.ndarray,
         scores = np.random.rand(system.n_agents, system.n_resources)
     else:
         scores = np.mean(system.score_matrices[mask == 1, :, :], axis=0)
+    # Weight each agent's scores by their reliability (0 = worst, 1 = unchanged)
+    scores = scores * system.reliability[:, np.newaxis]
     scores[~system.compatibility] = -np.inf
     assigned = np.full(system.n_resources, False, dtype=bool)
     assignment = np.full(system.n_agents, -1, dtype=int)
@@ -36,6 +38,8 @@ def greedy_aggregated(system: AllocationSystem, mask: np.ndarray,
         scores = np.zeros((system.n_agents, system.n_resources))
         for idx, lay in enumerate(selected):
             scores += weights[idx] * system.score_matrices[lay]
+    # Weight each agent's scores by their reliability (0 = worst, 1 = unchanged)
+    scores = scores * system.reliability[:, np.newaxis]
     scores[~system.compatibility] = -np.inf
     assignment = np.full(system.n_agents, -1, dtype=int)
     used = np.full(system.n_resources, False, dtype=bool)
@@ -111,6 +115,10 @@ def rank_maximal_matching(system: AllocationSystem, mask: np.ndarray) -> Allocat
     if mask.sum() == 0:
         return greedy_aggregated(system, mask)
     agg_rank = np.sum(system.rank_matrices[mask == 1, :, :], axis=0)
+    # Penalise unreliable agents by inflating their aggregated rank
+    # reliability=0 → full penalty; reliability=1 → no penalty
+    reliability_penalty = (1 - system.reliability[:, np.newaxis]) * system.n_resources * mask.sum()
+    agg_rank = agg_rank.astype(float) + reliability_penalty
     agg_rank[~system.compatibility] = 1e9
     assignment = np.full(system.n_agents, -1, dtype=int)
     used = np.full(system.n_resources, False, dtype=bool)
