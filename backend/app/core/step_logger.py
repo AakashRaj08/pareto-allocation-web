@@ -473,64 +473,71 @@ def log_pareto_filtering(evaluated: List[Tuple[int, Dict]], objectives) -> Tuple
 def build_full_trace(system: AllocationSystem, mask: np.ndarray) -> Tuple[List, List]:
     """
     Run the entire pipeline with step-by-step logging.
-    Returns (pareto_result, steps_log).
+    Returns (all_results, steps_log).
     """
     steps = []
+
 
     # ── Step 1: System setup
     steps.append(log_system_setup(system, mask))
 
-    # ── Step 2: Run algorithms with logging
+    # ── Step 2: Run exactly 5 algorithms with logging
     allocations = []
     labels = []
 
-    for run in range(3):
-        alloc, log = log_serial_dictatorship(system, mask)
-        log["title"] = f"Serial Dictatorship (run {run + 1})"
-        steps.append(log)
-        allocations.append(alloc)
-        labels.append(f"SD-{run + 1}")
+    # 1. Serial Dictatorship
+    alloc, log = log_serial_dictatorship(system, mask)
+    steps.append(log)
+    allocations.append(alloc)
+    labels.append("Serial Dictatorship")
 
+    # 2. Greedy Aggregated
     alloc, log = log_greedy_aggregated(system, mask)
     steps.append(log)
     allocations.append(alloc)
-    labels.append("Greedy")
+    labels.append("Greedy Aggregated")
 
+    # 3. Rank-Maximal Matching
     alloc, log = log_rank_maximal(system, mask)
     steps.append(log)
     allocations.append(alloc)
-    labels.append("RankMax")
+    labels.append("Rank-Maximal")
 
-    for run in range(2):
-        alloc, log = log_random_feasible(system, run + 1)
-        steps.append(log)
-        allocations.append(alloc)
-        labels.append(f"Rand-{run + 1}")
+    # 4. Random Feasible (run 1)
+    alloc, log = log_random_feasible(system, 1)
+    steps.append(log)
+    allocations.append(alloc)
+    labels.append("Random Feasible 1")
 
-    # ── Step 3: Evaluate each
+    # 5. Random Feasible (run 2)
+    alloc, log = log_random_feasible(system, 2)
+    steps.append(log)
+    allocations.append(alloc)
+    labels.append("Random Feasible 2")
+
+    # ── Step 3: Evaluate each algorithm's output
     evaluated = []
     for i, (alloc, label) in enumerate(zip(allocations, labels)):
         metrics, eval_log = log_evaluation(alloc, system, mask, f"C{i + 1} ({label})")
         steps.append(eval_log)
         if metrics.get("valid"):
-            evaluated.append((i, metrics, alloc))
+            evaluated.append((i, metrics, alloc, label))
 
-    # ── Step 4: Pareto filtering
+    # ── Step 4: Pareto dominance info (logged for reference only — does NOT filter results)
     objectives = [('avg_rank_selected', True), ('alpha_score', False), ('stability', False)]
-    eval_pairs = [(idx, met) for idx, met, _ in evaluated]
-    survivors, pareto_log = log_pareto_filtering(eval_pairs, objectives)
+    eval_pairs = [(idx, met) for idx, met, _a, _l in evaluated]
+    _, pareto_log = log_pareto_filtering(eval_pairs, objectives)
     steps.append(pareto_log)
 
-    # ── Step 5: Final result summary
-    pareto_result = []
-    for idx, met, alloc in evaluated:
-        if idx in survivors:
-            pareto_result.append((alloc, met))
+    # ── Step 5: Return ALL valid algorithm results (up to 5)
+    # Pareto dominance is informational only; every algorithm's output is kept
+    # so the user can compare all results side-by-side.
+    all_results = [(alloc, met) for _, met, alloc, _l in evaluated]
 
     summary_solutions = []
-    for sol_idx, (alloc, met) in enumerate(pareto_result):
+    for sol_idx, (_, met, alloc, label) in enumerate(evaluated):
         summary_solutions.append({
-            "solution": f"Sol {sol_idx + 1}",
+            "solution": f"Sol {sol_idx + 1} ({label})",
             "assignment": {f"A{i}": f"R{alloc.assignment[i]}" if alloc.assignment[i] >= 0 else "—" for i in range(system.n_agents)},
             "key_metrics": {
                 "avg_rank_selected": _fmt(met.get("avg_rank_selected")),
@@ -542,12 +549,12 @@ def build_full_trace(system: AllocationSystem, mask: np.ndarray) -> Tuple[List, 
         })
 
     steps.append({
-        "title": "Final Pareto Front",
+        "title": "All Algorithm Results",
         "type": "result",
         "details": {
-            "n_solutions": len(pareto_result),
+            "n_solutions": len(all_results),
             "solutions": summary_solutions,
         }
     })
 
-    return pareto_result, steps
+    return all_results, steps
